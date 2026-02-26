@@ -1,0 +1,234 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calculadora Forwards - Premium</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    transition: all 0.35s ease;
+}
+
+body{
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    padding:20px;
+    overflow:hidden;
+}
+
+/* ===== MODOS ===== */
+
+/* 🔴 ROJO + NEGRO INTENSO */
+body.mode-dark{
+    background: radial-gradient(circle at top, #aa0000 0%, #4d0000 40%, #000000 100%);
+}
+
+/* 🔴 ROJO + BLANCO LIMPIO */
+body.mode-light{
+    background: radial-gradient(circle at top, #ff3b3b 0%, #ffffff 75%);
+}
+
+/* ===== CONTENEDOR GLASS PREMIUM ===== */
+
+.contenedor{
+    width:100%;
+    max-width:520px;
+    backdrop-filter: blur(40px) saturate(160%);
+    -webkit-backdrop-filter: blur(40px) saturate(160%);
+    border-radius:35px;
+    padding:35px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.5);
+    animation: fadeIn 0.8s ease;
+}
+
+body.mode-dark .contenedor{
+    background: rgba(255, 0, 0, 0.07);
+    border:1px solid rgba(255, 0, 0, 0.25);
+    color:white;
+}
+
+body.mode-light .contenedor{
+    background: rgba(255, 255, 255, 0.35);
+    border:1px solid rgba(255,255,255,0.8);
+    color:#111;
+}
+
+/* Animación suave */
+@keyframes fadeIn{
+    from{opacity:0; transform:translateY(50px) scale(0.95);}
+    to{opacity:1; transform:translateY(0) scale(1);}
+}
+
+h2{
+    text-align:center;
+    margin-bottom:25px;
+    font-size:22px;
+    letter-spacing:1px;
+}
+
+h3{
+    margin-top:25px;
+    margin-bottom:12px;
+    font-weight:500;
+    font-size:16px;
+    opacity:0.85;
+}
+
+/* ===== INPUTS ===== */
+
+input{
+    width:100%;
+    padding:14px;
+    margin-bottom:14px;
+    border-radius:18px;
+    border:1px solid rgba(255,255,255,0.3);
+    outline:none;
+    font-size:14px;
+}
+
+body.mode-dark input{
+    background: rgba(0,0,0,0.65);
+    color:white;
+}
+
+body.mode-light input{
+    background: rgba(255,255,255,0.85);
+    color:#111;
+}
+
+input:focus{
+    box-shadow:0 0 20px rgba(255,0,0,0.6);
+    border:1px solid #ff1a1a;
+}
+
+input.error{
+    border:2px solid #ff0000;
+}
+
+/* ===== BOTONES ===== */
+
+button{
+    width:100%;
+    padding:14px;
+    border:none;
+    border-radius:25px;
+    cursor:pointer;
+    font-weight:600;
+    margin-bottom:12px;
+    letter-spacing:0.5px;
+}
+
+body.mode-dark button{
+    background: linear-gradient(145deg,#ff0000,#800000);
+    color:white;
+}
+
+body.mode-light button{
+    background: linear-gradient(145deg,#ff4d4d,#ff1a1a);
+    color:white;
+}
+
+button:hover{
+    transform:scale(1.06);
+    box-shadow:0 0 25px rgba(255,0,0,0.7);
+}
+
+button:active{
+    transform:scale(0.98);
+}
+
+.resultado{
+    text-align:center;
+    font-weight:600;
+    min-height:24px;
+    margin-bottom:10px;
+}
+
+/* Toggle elegante */
+.toggle{
+    position:absolute;
+    top:25px;
+    right:25px;
+    width:auto;
+    padding:10px 18px;
+    border-radius:30px;
+    font-size:13px;
+    backdrop-filter: blur(20px);
+}
+</style>
+</head>
+
+<body class="mode-dark">
+
+<button class="toggle" onclick="cambiarModo()">Modo</button>
+
+<div class="contenedor">
+<h2>Calculadora de Forwards</h2>
+
+<h3>Forward sin ingresos</h3>
+<input type="number" id="s0" placeholder="Precio actual (S0)">
+<input type="number" id="r" placeholder="Tasa (r)">
+<input type="number" id="t" placeholder="Tiempo (T)">
+<button onclick="forwardSimple()">Calcular</button>
+<p class="resultado" id="resultado1"></p>
+
+<h3>Forward con dividendos</h3>
+<input type="number" id="s0d" placeholder="Precio actual (S0)">
+<input type="number" id="pv" placeholder="Valor presente dividendos">
+<input type="number" id="rd" placeholder="Tasa (r)">
+<input type="number" id="td" placeholder="Tiempo (T)">
+<button onclick="forwardDividendos()">Calcular</button>
+<p class="resultado" id="resultado2"></p>
+
+</div>
+
+<script>
+function cambiarModo(){
+    const body = document.body;
+    if(body.classList.contains("mode-dark")){
+        body.classList.remove("mode-dark");
+        body.classList.add("mode-light");
+    } else {
+        body.classList.remove("mode-light");
+        body.classList.add("mode-dark");
+    }
+}
+
+function validar(inputs){
+    let valido = true;
+    inputs.forEach(id=>{
+        let campo = document.getElementById(id);
+        if(campo.value === ""){
+            campo.classList.add("error");
+            valido = false;
+        }else{
+            campo.classList.remove("error");
+        }
+    });
+    return valido;
+}
+
+function forwardSimple(){
+    if(!validar(["s0","r","t"])) return;
+    let F0 = parseFloat(s0.value) * Math.exp(parseFloat(r.value)*parseFloat(t.value));
+    resultado1.innerText = "F₀ = " + F0.toFixed(4);
+}
+
+function forwardDividendos(){
+    if(!validar(["s0d","pv","rd","td"])) return;
+    let F0 = (parseFloat(s0d.value) - parseFloat(pv.value)) * 
+             Math.exp(parseFloat(rd.value)*parseFloat(td.value));
+    resultado2.innerText = "F₀ = " + F0.toFixed(4);
+}
+</script>
+
+</body>
+</html>
